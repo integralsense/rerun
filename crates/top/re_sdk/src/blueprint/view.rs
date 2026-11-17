@@ -45,6 +45,37 @@ impl Default for View {
 }
 
 impl View {
+    /// Create a view of any view class known to the viewer.
+    ///
+    /// Prefer the typed builders (e.g. [`Spatial3DView`]) for built-in classes.
+    /// This is for classes without one, such as custom views registered with
+    /// `re_viewer::App::add_view_class`.
+    pub fn new(class_identifier: impl Into<String>, name: impl Into<String>) -> Self {
+        Self {
+            class_identifier: class_identifier.into(),
+            name: Some(name.into()),
+            ..Default::default()
+        }
+    }
+
+    /// Set the origin entity path.
+    pub fn with_origin(mut self, origin: impl Into<EntityPath>) -> Self {
+        self.origin = origin.into();
+        self
+    }
+
+    /// Set the contents query expressions.
+    pub fn with_contents(mut self, queries: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.contents = queries.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Set visibility.
+    pub fn with_visible(mut self, visible: bool) -> Self {
+        self.visible = Some(visible);
+        self
+    }
+
     /// Get the blueprint path for this view.
     pub fn blueprint_path(&self) -> EntityPath {
         format!("view/{}", self.id).into()
