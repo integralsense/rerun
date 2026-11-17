@@ -140,7 +140,7 @@ fn top_bar_ui(
 ) {
     let top_bar_rect = ui.max_rect();
 
-    if !app.uses_native_menu() {
+    if !app.uses_native_menu() && app.startup_options().top_bar.menu_button {
         app.rerun_menu_button_ui(store_hub, store_context, ui);
     }
 
@@ -317,7 +317,7 @@ fn command_palette_trigger_ui(
     let right_half_width = right_content_left - SIDE_GAP - center_x;
     let width = (2.0 * left_half_width.min(right_half_width)).min(MAX_WIDTH);
 
-    if width < MIN_WIDTH {
+    if width < MIN_WIDTH || !app.startup_options().top_bar.command_palette_trigger {
         let available_width = right_content_left - left_content_right - 2.0 * SIDE_GAP;
         if navigation_buttons_state.is_visible() && 2.0 * NAVIGATION_BUTTON_SIZE <= available_width
         {

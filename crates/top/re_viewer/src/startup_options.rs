@@ -21,6 +21,27 @@ pub struct LoginOptions {
     pub signed_out_url: String,
 }
 
+/// Which built-in widgets the top bar shows.
+#[derive(Clone, Copy, Debug)]
+pub struct TopBarOptions {
+    /// The menu button on the left. Ignored where the native menu is used instead.
+    pub menu_button: bool,
+
+    /// The centered command palette trigger.
+    ///
+    /// When hidden, the navigation buttons sit on the left instead.
+    pub command_palette_trigger: bool,
+}
+
+impl Default for TopBarOptions {
+    fn default() -> Self {
+        Self {
+            menu_button: true,
+            command_palette_trigger: true,
+        }
+    }
+}
+
 /// Settings set once at startup (e.g. via command-line options) and not serialized.
 #[derive(Clone)]
 pub struct StartupOptions {
@@ -82,6 +103,9 @@ pub struct StartupOptions {
 
     /// Default overrides for state of top/side/bottom panels.
     pub panel_state_overrides: PanelStateOverrides,
+
+    /// Which built-in widgets the top bar shows.
+    pub top_bar: TopBarOptions,
 
     /// Whether or not to enable usage of the `History` API on web.
     ///
@@ -195,6 +219,7 @@ impl Default for StartupOptions {
             fullscreen_options: Default::default(),
 
             panel_state_overrides: Default::default(),
+            top_bar: Default::default(),
 
             #[cfg(target_arch = "wasm32")]
             enable_history: false,

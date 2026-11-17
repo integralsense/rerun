@@ -726,6 +726,7 @@ fn create_app(
 
         fullscreen_options: fullscreen.clone(),
         panel_state_overrides: panel_state_overrides.unwrap_or_default().into(),
+        top_bar: Default::default(),
 
         enable_history,
         viewer_base_url,
