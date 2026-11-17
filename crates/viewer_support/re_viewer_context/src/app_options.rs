@@ -98,6 +98,13 @@ pub struct AppOptions {
     /// see [`AppOptions::cache_subdirectory`].
     #[cfg(not(target_arch = "wasm32"))]
     pub cache_directory: Option<std::path::PathBuf>,
+
+    /// The viewer's built-in keyboard controls.
+    ///
+    /// Apps embedding the viewer can turn them off or rebind them, to use the keys themselves.
+    /// Not persisted: it's up to the embedding app, not a user preference.
+    #[serde(skip)]
+    pub keyboard: KeyboardOptions,
 }
 
 impl Default for AppOptions {
@@ -147,6 +154,8 @@ impl AppOptions {
 
             #[cfg(not(target_arch = "wasm32"))]
             cache_directory: Self::default_cache_directory(),
+
+            keyboard: KeyboardOptions::default(),
         }
     }
 
@@ -209,6 +218,67 @@ impl AppOptions {
                 .then(|| std::path::PathBuf::from(&self.video.ffmpeg_path)),
         }
     }
+}
+
+/// The viewer's built-in keyboard controls, see [`AppOptions::keyboard`].
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct KeyboardOptions {
+    /// Keys that fly the eye of 3D views.
+    ///
+    /// With [`Eye3DKeys::NONE`], 3D views don't take keyboard focus at all.
+    pub eye_3d: Eye3DKeys,
+
+    /// Playback shortcuts of the timeline: space, arrows, and typing a playback speed.
+    ///
+    /// When off, these keys do nothing in the viewer, so the embedding app can read them
+    /// (e.g. with [`egui::InputState::key_down`]). They still don't move egui's keyboard focus.
+    pub timeline_shortcuts: bool,
+}
+
+impl Default for KeyboardOptions {
+    fn default() -> Self {
+        Self {
+            eye_3d: Eye3DKeys::default(),
+            timeline_shortcuts: true,
+        }
+    }
+}
+
+/// Keys that fly the eye of a 3D view while it has keyboard focus. `None` disables a direction.
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct Eye3DKeys {
+    pub forward: Option<egui::Key>,
+    pub back: Option<egui::Key>,
+    pub left: Option<egui::Key>,
+    pub right: Option<egui::Key>,
+    pub down: Option<egui::Key>,
+    pub up: Option<egui::Key>,
+}
+
+impl Default for Eye3DKeys {
+    /// WASD, plus Q / E for down / up.
+    fn default() -> Self {
+        Self {
+            forward: Some(egui::Key::W),
+            back: Some(egui::Key::S),
+            left: Some(egui::Key::A),
+            right: Some(egui::Key::D),
+            down: Some(egui::Key::Q),
+            up: Some(egui::Key::E),
+        }
+    }
+}
+
+impl Eye3DKeys {
+    /// No keyboard flight.
+    pub const NONE: Self = Self {
+        forward: None,
+        back: None,
+        left: None,
+        right: None,
+        down: None,
+        up: None,
+    };
 }
 
 #[derive(Debug, Default, PartialEq, Eq, serde::Deserialize, serde::Serialize, Clone)]

@@ -75,7 +75,9 @@ pub use self::annotations::{
     AnnotationContextTargetKind, AnnotationMap, Annotations, ResolvedAnnotationInfo,
 };
 pub use self::app_context::{AppContext, AuthContext};
-pub use self::app_options::{AppOptions, ExperimentalAppOptions, VideoOptions};
+pub use self::app_options::{
+    AppOptions, ExperimentalAppOptions, Eye3DKeys, KeyboardOptions, VideoOptions,
+};
 pub use self::audio_output::AudioOutput;
 pub use self::blueprint_helpers::{
     AppBlueprintCtx, BlueprintContext, blueprint_timeline, blueprint_timepoint_for_writes,

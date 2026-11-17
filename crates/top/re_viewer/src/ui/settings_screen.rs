@@ -111,6 +111,7 @@ fn settings_screen_ui_impl(
 
         #[cfg(not(target_arch = "wasm32"))]
             cache_directory: _, // not yet exposed
+        keyboard: _, // set by apps embedding the viewer
     } = app_options;
 
     ui.add_space(8.0);

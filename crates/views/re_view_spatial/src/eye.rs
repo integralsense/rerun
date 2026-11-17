@@ -10,7 +10,7 @@ use re_view::controls::{
     DRAG_PAN3D_BUTTON, ROLL_MOUSE, ROLL_MOUSE_ALT, ROLL_MOUSE_MODIFIER, ROTATE3D_BUTTON,
     RuntimeModifiers, SPEED_UP_3D_MODIFIER,
 };
-use re_viewer_context::{ViewContext, ViewerContext};
+use re_viewer_context::{Eye3DKeys, ViewContext, ViewerContext};
 use re_viewport_blueprint::{ViewProperty, ViewPropertyQueryError};
 
 use crate::pinhole_wrapper::PinholeWrapper;
@@ -641,21 +641,27 @@ impl EyeController {
         }
     }
 
-    /// Listen to WSAD and QE to move the eye.
-    fn handle_keyboard_navigation(&mut self, eye_state: &mut EyeState, egui_ctx: &egui::Context) {
+    /// Listen to `keys` (WSAD and QE by default) to move the eye.
+    fn handle_keyboard_navigation(
+        &mut self,
+        eye_state: &mut EyeState,
+        egui_ctx: &egui::Context,
+        keys: Eye3DKeys,
+    ) {
         let mut requires_repaint = false;
 
         egui_ctx.input(|input| {
             let dt = input.stable_dt.at_most(0.1);
+            let down = |key: Option<egui::Key>| key.is_some_and(|key| input.key_down(key));
 
             // X=right, Y=up, Z=back
             let mut local_movement = Vec3::ZERO;
-            local_movement.z -= input.key_down(egui::Key::W) as i32 as f32;
-            local_movement.z += input.key_down(egui::Key::S) as i32 as f32;
-            local_movement.x -= input.key_down(egui::Key::A) as i32 as f32;
-            local_movement.x += input.key_down(egui::Key::D) as i32 as f32;
-            local_movement.y -= input.key_down(egui::Key::Q) as i32 as f32;
-            local_movement.y += input.key_down(egui::Key::E) as i32 as f32;
+            local_movement.z -= down(keys.forward) as i32 as f32;
+            local_movement.z += down(keys.back) as i32 as f32;
+            local_movement.x -= down(keys.left) as i32 as f32;
+            local_movement.x += down(keys.right) as i32 as f32;
+            local_movement.y -= down(keys.down) as i32 as f32;
+            local_movement.y += down(keys.up) as i32 as f32;
             local_movement = local_movement.normalize_or_zero();
 
             let rot = self.rotation();
@@ -752,6 +758,7 @@ impl EyeController {
         drag_threshold: f32,
         scene_bounding_box: &re_math::BoundingBox,
         enable_gamepad_navigation: bool,
+        keys: Eye3DKeys,
     ) -> GamepadNavigationStatus {
         // Modify speed based on modifiers:
         let os = response.ctx.os();
@@ -774,10 +781,13 @@ impl EyeController {
             self.handle_zoom(&response.ctx, scene_bounding_box);
         }
 
-        if response.has_focus() {
-            self.handle_keyboard_navigation(eye_state, &response.ctx);
-        } else if response.clicked() || self.did_interact {
-            response.request_focus();
+        // Without keys to listen to, leave the keyboard focus to others.
+        if keys != Eye3DKeys::NONE {
+            if response.has_focus() {
+                self.handle_keyboard_navigation(eye_state, &response.ctx, keys);
+            } else if response.clicked() || self.did_interact {
+                response.request_focus();
+            }
         }
 
         let gamepad_navigation_status =
@@ -898,6 +908,7 @@ impl EyeState {
             drag_threshold,
             &bounding_boxes.current,
             enable_gamepad_navigation,
+            ctx.viewer_ctx.app_options().keyboard.eye_3d,
         );
 
         match gamepad_navigation_status {

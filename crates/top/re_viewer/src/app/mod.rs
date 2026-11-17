@@ -1819,14 +1819,19 @@ impl AppCore {
                 }
 
                 // Timeline shortcuts (space/arrows/home/end) were consumed early in
-                // `on_begin_pass` and stashed; pair them with the live recording here:
+                // `on_begin_pass` and stashed; pair them with the live recording here,
+                // unless the embedding app turned them off to use the keys itself:
                 let pending_timeline = ui.ctx().data_mut(|data| {
                     let key = pending_timeline_shortcut_key();
                     let kind = data.get_temp::<RecordingCommandKind>(key);
                     data.remove::<RecordingCommandKind>(key);
                     kind
                 });
-                if let Some(cmd) = pending_timeline.and_then(|kind| kind.for_environment(cmd_env)) {
+                let timeline_shortcuts = self.state.app_options.keyboard.timeline_shortcuts;
+                if let Some(cmd) = pending_timeline
+                    .filter(|_| timeline_shortcuts)
+                    .and_then(|kind| kind.for_environment(cmd_env))
+                {
                     self.command_sender.send_recording_command(cmd);
                 }
             }
